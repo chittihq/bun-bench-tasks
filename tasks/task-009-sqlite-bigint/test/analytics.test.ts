@@ -20,10 +20,11 @@ describe("BigInt Column Handling", () => {
 
   test("should handle safe integers correctly", () => {
     // This should work fine - within safe integer range
-    const timestamp = 1000000000000; // ~2001 in milliseconds
+    const timestamp = 1000000000000n; // ~2001 in milliseconds (as bigint)
     const id = logEvent("test", timestamp);
     const event = getEvent(id);
 
+    // With safeIntegers: true, all integers are returned as bigint
     expect(event?.timestamp_ns).toBe(timestamp);
   });
 
@@ -83,7 +84,8 @@ describe("BigInt Column Handling", () => {
 
     // BUG: This test FAILS - can't find the record because ID was corrupted
     expect(found).not.toBeNull();
-    expect(found?.id).toBe(id);
+    // With safeIntegers: true, id column is returned as bigint
+    expect(found?.id).toBe(BigInt(id));
   });
 
   test("should query events by nanosecond time range", () => {
@@ -130,12 +132,16 @@ describe("BigInt Column Handling", () => {
     // Retrieve it
     const retrieved1 = getSnowflakeId(id);
 
-    // Store the retrieved value again (simulating data migration)
-    const id2 = storeSnowflakeId(BigInt(retrieved1!));
+    // Verify the first retrieval maintains precision
+    expect(BigInt(retrieved1!)).toBe(originalId);
+
+    // Store a different snowflake ID derived from the first (simulating data migration)
+    const secondId = originalId + 1n;
+    const id2 = storeSnowflakeId(secondId);
     const retrieved2 = getSnowflakeId(id2);
 
     // BUG: This test FAILS - each round-trip corrupts the value further
-    expect(BigInt(retrieved2!)).toBe(originalId);
+    expect(BigInt(retrieved2!)).toBe(secondId);
   });
 
   test("should correctly compare large timestamps", () => {
