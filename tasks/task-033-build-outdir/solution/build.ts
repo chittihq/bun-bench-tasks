@@ -1,7 +1,8 @@
 // Fixed build script - correct output directory path construction
 import { join } from "path";
 
-const srcDir = join(import.meta.dir, "..", "src");
+// Use current directory - this file gets copied to src/
+const srcDir = join(import.meta.dir, ".");
 
 // FIX: Output directory path correctly constructed
 // Uses project root and correct version format

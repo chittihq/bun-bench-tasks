@@ -38,7 +38,7 @@ describe("SQL Parameterized Queries", () => {
     const result = findUser(injectionAttempt);
 
     // This test FAILS - the injection works and returns a user
-    expect(result).toBeUndefined();
+    expect(result).toBeNull();
   });
 
   test("should prevent SQL injection in deleteUser", () => {

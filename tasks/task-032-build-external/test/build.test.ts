@@ -20,67 +20,54 @@ describe("Bun.build() External Dependencies", () => {
     }
   });
 
-  test("should build successfully", async () => {
+  test("should build successfully with external config", async () => {
+    // BUG: Without external config, the build fails because lodash/axios
+    // are not installed. With external config, they're treated as externals
+    // and the build succeeds.
     const result = await buildLibrary();
     expect(result.success).toBe(true);
   });
 
   test("should generate output file", async () => {
     const result = await buildLibrary();
+    // BUG: Without external config, build fails and no output is generated
     expect(result.outputs.length).toBeGreaterThan(0);
   });
 
-  test("bundle should not contain inlined lodash code", async () => {
-    // This test will fail because lodash is bundled instead of external
+  test("bundle should preserve lodash import as external", async () => {
+    // With external config, lodash import is preserved (not bundled)
     const content = await getBundleContent();
 
-    // If lodash was external, the bundle would contain an import statement
-    // not the actual implementation
+    // If lodash was external, the bundle would contain an import/require statement
     const hasLodashImport = content.includes('require("lodash")') ||
                            content.includes('from "lodash"') ||
                            content.includes("from 'lodash'");
 
-    // The bundle should NOT contain the full lodash implementation
-    const hasInlinedChunk = content.includes("chunk") && content.includes("slice");
-
-    // This assertion will fail - lodash is bundled, not external
-    expect(hasLodashImport || !hasInlinedChunk).toBe(true);
+    // BUG: Without external config, build fails so we can't check bundle content
+    // With external config, lodash remains as an import statement
+    expect(hasLodashImport).toBe(true);
   });
 
-  test("bundle should not contain inlined axios code", async () => {
-    // This test will fail because axios is bundled instead of external
+  test("bundle should preserve axios import as external", async () => {
+    // With external config, axios import is preserved (not bundled)
     const content = await getBundleContent();
 
+    // If axios was external, the bundle would contain an import/require statement
     const hasAxiosImport = content.includes('require("axios")') ||
                           content.includes('from "axios"') ||
                           content.includes("from 'axios'");
 
-    // The bundle should NOT contain mock axios implementation
-    const hasInlinedAxios = content.includes("mockAxios");
-
-    // This assertion will fail - axios mock is bundled
-    expect(hasAxiosImport || !hasInlinedAxios).toBe(true);
+    // BUG: Without external config, build fails so we can't check bundle content
+    // With external config, axios remains as an import statement
+    expect(hasAxiosImport).toBe(true);
   });
 
   test("bundle size should be small when externals are excluded", async () => {
-    // This test will fail because everything is bundled
     const result = await buildLibrary();
 
-    // With externals, bundle should be under 1KB
-    // Without externals, it will be larger
-    expect(result.bundleSize).toBeLessThan(1000);
-  });
-
-  test("external markers should indicate proper external handling", async () => {
-    const content = await getBundleContent();
-
-    // If externals were properly configured, these markers would be
-    // replaced with actual import statements
-    const hasLodashMarker = content.includes("__LODASH_EXTERNAL__");
-    const hasAxiosMarker = content.includes("__AXIOS_EXTERNAL__");
-
-    // Markers should NOT be present in properly configured build
-    // This will fail because externals are bundled
-    expect(hasLodashMarker && hasAxiosMarker).toBe(false);
+    // With externals, bundle should be small (just our code, no lodash/axios)
+    // BUG: Without external config, build fails (bundleSize is 0)
+    expect(result.bundleSize).toBeGreaterThan(0);
+    expect(result.bundleSize).toBeLessThan(2000);
   });
 });

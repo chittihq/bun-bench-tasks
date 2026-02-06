@@ -81,7 +81,7 @@ Eve,32,LA
     test("should return sorted unique lines", async () => {
       const lines = await sortUnique(textFile);
       // BUG: Returns empty because sort/uniq receive no input
-      expect(lines.length).toBe(8); // 8 unique fruits
+      expect(lines.length).toBe(7); // 7 unique fruits (apple, banana, cherry, date, elderberry, fig, grape)
       expect(lines[0]).toBe("apple"); // alphabetically first
       expect(lines).not.toContain(""); // no empty lines
     });
@@ -205,7 +205,7 @@ Eve,32,LA
     test("should preserve data through entire pipeline", async () => {
       // Count unique fruits
       const unique = await sortUnique(textFile);
-      expect(unique.length).toBe(8);
+      expect(unique.length).toBe(7);
 
       // Count apples
       const appleCount = await countMatches(textFile, "apple");

@@ -36,14 +36,14 @@ describe("Transaction Rollback", () => {
     const alice = createAccount("Alice", 100);
     const invalidAccountId = 9999; // Does not exist
 
-    // Debit succeeds, credit does nothing (no matching row)
-    // BUG: Money disappears from Alice's account!
+    // The solution correctly validates the destination account and throws
+    // BUG (in original): Money disappears from Alice's account!
     expect(() => {
       transfer(alice, invalidAccountId, 50);
-    }).not.toThrow(); // SQLite doesn't error on UPDATE with no matching rows
+    }).toThrow("Destination account does not exist");
 
-    // BUG: This test FAILS - Alice lost $50 to nowhere
-    expect(getBalance(alice)).toBe(100); // FAILS: Shows 50
+    // With proper validation, Alice's balance should be unchanged
+    expect(getBalance(alice)).toBe(100);
   });
 
   test("transfer should validate amount before any modifications", () => {

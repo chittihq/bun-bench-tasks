@@ -2,7 +2,8 @@
 import { join } from "path";
 import { mkdir, exists } from "fs/promises";
 
-const srcDir = join(import.meta.dir, "..", "src");
+// Use current directory - this file gets copied to src/
+const srcDir = join(import.meta.dir, ".");
 const outDir = join(import.meta.dir, "..", "dist");
 
 export async function buildMinified() {

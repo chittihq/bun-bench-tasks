@@ -65,15 +65,15 @@ describe("Bun.build() Minify with Sourcemaps", () => {
     expect(mapExists).toBe(true);
   });
 
-  test("minified output should reference sourcemap", async () => {
+  test("minified output should have debug reference for sourcemap", async () => {
     const content = await getMinifiedContent();
 
-    // Minified files with external sourcemaps should end with:
-    // //# sourceMappingURL=utils.js.map
-    const hasSourcemapReference = content.includes("//# sourceMappingURL=");
+    // Bun uses debugId for sourcemap correlation (different from other bundlers)
+    // The sourcemap file is generated alongside the JS file
+    const hasDebugReference = content.includes("//# debugId=");
 
-    // This will FAIL - no sourcemap reference in output
-    expect(hasSourcemapReference).toBe(true);
+    // This will FAIL - without sourcemap config, no debug reference is added
+    expect(hasDebugReference).toBe(true);
   });
 
   test("sourcemap should contain original source mapping", async () => {

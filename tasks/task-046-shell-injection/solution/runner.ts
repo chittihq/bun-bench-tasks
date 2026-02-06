@@ -66,14 +66,18 @@ export async function copyFile(source: string, destination: string): Promise<boo
 
 /**
  * Lists files matching a pattern
- * FIXED: Pattern is safely escaped
- * Note: For glob patterns, consider using Bun.Glob instead of shell ls
+ * FIXED: Use Bun.Glob for safe pattern matching (no shell involved)
  */
 export async function listFiles(pattern: string): Promise<string[]> {
-  // FIXED: Using safe interpolation
-  // For better security, use Bun's native glob instead of shell
-  const result = await Bun.$`ls ${pattern}`.nothrow().text();
-  return result.trim().split('\n').filter(Boolean);
+  // FIXED: Use Bun's native Glob for safe pattern matching
+  // This avoids shell entirely, eliminating injection risk
+  const glob = new Bun.Glob(pattern.split('/').pop() || '*');
+  const dir = pattern.substring(0, pattern.lastIndexOf('/')) || '.';
+  const files: string[] = [];
+  for await (const file of glob.scan({ cwd: dir, absolute: true })) {
+    files.push(file);
+  }
+  return files;
 }
 
 /**

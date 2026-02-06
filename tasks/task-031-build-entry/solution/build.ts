@@ -1,7 +1,8 @@
 // Fixed build script - entrypoints properly specified as an array
 import { join } from "path";
 
-const srcDir = join(import.meta.dir, "..", "src");
+// Use current directory (same as buggy version) - this file gets copied to src/
+const srcDir = join(import.meta.dir, ".");
 
 export async function buildProject() {
   // FIX: entrypoints is now properly an array containing both entry points

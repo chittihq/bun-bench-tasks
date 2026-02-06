@@ -5,7 +5,7 @@
 
 /**
  * Check if a file path matches a TypeScript file pattern
- * FIXED: Using correct recursive pattern "**/*.ts"
+ * FIXED: Using correct recursive pattern (double-star slash star dot ts)
  */
 export function isTypeScriptFile(filePath: string): boolean {
   // FIXED: Use "**/*.ts" to match TypeScript files at any depth

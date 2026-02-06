@@ -3,6 +3,9 @@
  * FIXED: Correct handling of symlinks and hidden files
  */
 
+import { statSync } from "fs";
+import { join } from "path";
+
 export interface ScanOptions {
   cwd?: string;
   includeHidden?: boolean;
@@ -66,12 +69,20 @@ export async function scanDirectoryAsync(pattern: string, options: ScanOptions =
  * FIXED: Enable dot file matching with dot: true
  */
 export function findHiddenFiles(cwd: string): string[] {
-  const glob = new Bun.Glob("**/.*");
   const results: string[] = [];
 
-  // FIXED: Pass dot: true to enable matching dotfiles, and cwd
-  for (const file of glob.scanSync({ cwd, dot: true })) {
+  // FIXED: Match files starting with . (dotfiles)
+  const dotfileGlob = new Bun.Glob("**/.*");
+  for (const file of dotfileGlob.scanSync({ cwd, dot: true })) {
     results.push(file);
+  }
+
+  // FIXED: Also match files inside hidden directories
+  const hiddenDirGlob = new Bun.Glob("**/.*/**/*");
+  for (const file of hiddenDirGlob.scanSync({ cwd, dot: true })) {
+    if (!results.includes(file)) {
+      results.push(file);
+    }
   }
 
   return results;
@@ -111,18 +122,25 @@ export function getAbsolutePaths(pattern: string, cwd: string): string[] {
 
 /**
  * Find only directories matching pattern
- * FIXED: Set onlyFiles: false to get directories
+ * FIXED: Set onlyFiles: false to get directories, then filter
  */
 export function findDirectories(pattern: string, cwd: string): string[] {
   const glob = new Bun.Glob(pattern);
   const results: string[] = [];
 
   // FIXED: Pass onlyFiles: false to include directories in results
+  // Then filter to only keep directories using statSync
   for (const file of glob.scanSync({ cwd, onlyFiles: false })) {
-    // Filter to only include directories by checking if it's not a file
-    // Note: Bun's glob doesn't have onlyDirectories, so we use onlyFiles: false
-    // and the pattern should be constructed to match directory names
-    results.push(file);
+    // FIXED: Check if path is a directory using statSync
+    const fullPath = join(cwd, file);
+    try {
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        results.push(file);
+      }
+    } catch {
+      // Skip if stat fails
+    }
   }
 
   return results;

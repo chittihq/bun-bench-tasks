@@ -1,7 +1,8 @@
 // Fixed build script - external dependencies properly configured
 import { join } from "path";
 
-const srcDir = join(import.meta.dir, "..", "src");
+// Use current directory - this file gets copied to src/
+const srcDir = join(import.meta.dir, ".");
 
 export async function buildLibrary() {
   // FIX: Added 'external' option to exclude dependencies from bundle

@@ -47,7 +47,14 @@ describe("Worker Error Handling", () => {
         worker.onmessage = (event) => {
           clearTimeout(timeout);
           worker.terminate();
-          resolve(event.data);
+          // BUG: The buggy version doesn't handle error responses properly
+          // The solution catches errors and sends them as { type: "error", message: ... }
+          // Check if the response is an error type and reject accordingly
+          if (event.data && event.data.type === "error") {
+            reject(new Error(event.data.message));
+          } else {
+            resolve(event.data);
+          }
         };
 
         worker.onerror = (event) => {

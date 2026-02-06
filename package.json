@@ -8,7 +8,7 @@
   "scripts": {
     "test:task": "cd tasks/$TASK && bun test",
     "test:all": "for dir in tasks/task-*; do echo \"Testing $dir...\"; cd $dir && bun test 2>/dev/null || true; cd ../..; done",
-    "test:solutions": "for dir in tasks/task-*; do echo \"Testing solution in $dir...\"; cd $dir && mv src src.bak && ln -s solution src && bun test; rm src && mv src.bak src; cd ../..; done",
+    "test:solutions": "bun run scripts/test-solutions.ts",
     "validate": "bun run scripts/validate-tasks.ts",
     "list": "ls -1 tasks/"
   },
